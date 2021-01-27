@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import users from "../../../data/users.json"
 const faker = require('faker');
+import { check, sanitize, validationResult } from "express-validator";
 
 /**
  * Get all Avaialable users
@@ -16,8 +17,17 @@ export const getUsers = (req: Request, res: Response) => {
  * Get all Avaialable users
  * @route POST /users
  */
-export const postUsers = (req: Request, res: Response) => {
+export const postUsers = async (req: Request, res: Response) => {
     let user = req.body;
+
+    await check("email", "Email is not valid").isEmail().run(req);
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
     user["id"] = faker.random.uuid();
     users.push(user)
     res.json({
